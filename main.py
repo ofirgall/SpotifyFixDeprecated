@@ -12,6 +12,7 @@ SECRETS_REDIRECT_URI = 'spotify-api-redirect_uri'
 CACHE_PATH = 'cache_file'
 
 from albums import replace_albums
+from tracks import replace_tracks
 
 def connect_to_spotify(secrets_file_stream):
     secrets = json.load(secrets_file_stream)
@@ -36,6 +37,7 @@ def main():
 
     spotify = connect_to_spotify(args.secrets_file)
     replace_albums(spotify, interactive)
+    replace_tracks(spotify, interactive)
 
 
 

@@ -1,0 +1,4 @@
+*.pyc
+secrets.json
+cache_file
+input.json

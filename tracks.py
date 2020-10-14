@@ -32,11 +32,13 @@ def get_deperacted_from_saved_tracks(spotify):
 def get_all_playlists(spotify):
     result = spotify.current_user_playlists()
     playlists = result['items']
+    my_id = spotify.current_user()['id']
 
     while result['next']:
         result = spotify.next(result)
         playlists.extend(result['items'])
 
+    playlists = list(filter(lambda p: p['id'] == my_id, playlists))
     return playlists
 
 def get_deperacted_tracks_from_playlist(spotify, playlist):

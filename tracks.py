@@ -66,19 +66,26 @@ def get_deperacted_tracks_from_playlists(spotify):
 
     return tracks_dict
 
-def find_track_replacment(spotify, track):
-    result = spotify.search(q=track[TRACK_KEY_NAME], type='track')
+def find_track_replacment(spotify, track, market):
+    result = spotify.track(track[TRACK_KEY_ID], market=market)
 
-    try:
-        return result['tracks']['items'][0]
-    except:
-        return None
+    if 'linked_from' not in result:
+        if not result['is_playable']:
+            # TODO support this?
+            return None
+
+        raise ValueError(f'{track} isn\'t a relinked track')
+
+    if result['id'] == track[TRACK_KEY_ID]:
+        raise ValueError(f'{track} new id is the same as the relinked track id')
+
+    return result # this is the new id because we specified market
 
 def should_replace_track(track_tuple):
     return question(f"[SAVED] Replace \"{track_tuple[0][TRACK_KEY_STR]}\" with \"{pretify_track(track_tuple[1])}\"")
 
-def replace_saved_tracks(spotify, saved_tracks, interactive):
-    saved_tracks = [(d, find_track_replacment(spotify, d)) for d in saved_tracks]
+def replace_saved_tracks(spotify, saved_tracks, interactive, country_code):
+    saved_tracks = [(d, find_track_replacment(spotify, d, country_code)) for d in saved_tracks]
 
     if len(saved_tracks) == 0:
         return
@@ -122,8 +129,8 @@ def replace_in_playlist(spotify, playlist_id, tracks):
     add_tracks_to_playlist(spotify, playlist_id, tracks_to_add)
 
 
-def replace_playlists_tracks(spotify, tracks_dict, interactive):
-    tracks = [(t, find_track_replacment(spotify, t), p) for t, p in tracks_dict.items()]
+def replace_playlists_tracks(spotify, tracks_dict, interactive, country_code):
+    tracks = [(t, find_track_replacment(spotify, t, country_code), p) for t, p in tracks_dict.items()]
 
     if len(tracks) == 0:
         return
@@ -158,7 +165,7 @@ def replace_playlists_tracks(spotify, tracks_dict, interactive):
         replace_in_playlist(spotify, p_id, tracks)
 
 
-def replace_tracks(spotify, interactive):
+def replace_tracks(spotify, interactive, country_code):
     deprecated_saved_tracks = get_deperacted_from_saved_tracks(spotify)
     deprecated_saved_tracks = [track_to_dict_key(t) for t in deprecated_saved_tracks]
 
@@ -169,12 +176,5 @@ def replace_tracks(spotify, interactive):
             playlists.insert(0, 'Saved')
             deprecated_saved_tracks.remove(track)
 
-    replace_saved_tracks(spotify, deprecated_saved_tracks, interactive)
-    replace_playlists_tracks(spotify, deperacted_tracks_from_playlists, interactive)
-
-
-
-
-
-
-
+    replace_saved_tracks(spotify, deprecated_saved_tracks, interactive, country_code)
+    replace_playlists_tracks(spotify, deperacted_tracks_from_playlists, interactive, country_code)

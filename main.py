@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.8
+#!/usr/bin/env python3
 
 import spotipy
 import json
@@ -29,6 +29,7 @@ def main():
 
     parser = ArgumentParser(description='Fix Spotify Deprecated Songs')
     parser.add_argument('secrets_file', nargs='?', type=FileType('r'), default='secrets.json')
+    parser.add_argument('country_code', help='Your country code')
     parser.add_argument('--not-interactive', action='store_true', help='Run in not interactive mode')
 
     args = parser.parse_args()
@@ -36,8 +37,12 @@ def main():
     interactive = not args.not_interactive
 
     spotify = connect_to_spotify(args.secrets_file)
+    markets = spotify.available_markets()['markets']
+    if args.country_code not in markets:
+        print(f'Country code: {args.country_code} isn\'t valid')
+        return
     replace_albums(spotify, interactive)
-    replace_tracks(spotify, interactive)
+    replace_tracks(spotify, interactive, args.country_code)
 
 
 
